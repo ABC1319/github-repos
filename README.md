@@ -1,9 +1,10 @@
 # GitHub Repos Exporter 🚀
+![Export Status](https://github.com/ABC1319/github-repos/actions/workflows/export.yml/badge.svg)
 
 > Fork & Modified from [github-star](https://github.com/ABC1319/github-star)  
 > 将 GitHub 个人仓库导出为 JSON / CSV / XLSX / HTML 单页导航，支持自动部署到 GitHub Pages。
 
-![Export Status](https://github.com/ABC1319/github-repos/actions/workflows/export.yml/badge.svg)
+
 
 ## ✨ 功能特性
 
