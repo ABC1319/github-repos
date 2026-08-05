@@ -1,0 +1,73 @@
+name: Export GitHub Repos
+
+on:
+  # 每周一 00:00 UTC 自动运行
+  schedule:
+    - cron: '0 0 1 * *'
+
+  # 允许手动触发
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install requests openpyxl
+
+    - name: Export GitHub Repos
+      env:
+        GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        mkdir -p ./dist
+        python export.py --output ./dist --formats json,csv,xlsx,html
+        cp ./dist/repos.json ./repos.json
+        cp ./dist/repos.csv ./repos.csv
+        cp ./dist/repos.xlsx ./repos.xlsx
+        cp ./dist/index.html ./index.html
+        echo "--- 生成的文件 ---"
+        ls -la ./dist/
+
+    - name: Commit and push
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add dist/ repos.json repos.csv repos.xlsx index.html
+        git diff --staged --quiet && echo "无变更，跳过提交" && exit 0
+        git commit -m "chore: update GitHub Repos export"
+        git pull --rebase origin main || git pull --rebase origin master
+        git push origin HEAD
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v5
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './dist'
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
